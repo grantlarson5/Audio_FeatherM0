@@ -3,48 +3,51 @@
   Audio player, non blocking.
   read 8bit mono .wav file, up to 4 channels
   use Audacity to convert your audio file
-  Author : AloyseTech
+  Author : AloyseTech with subsequent modifications by various people including,Hydronics and Gambalunga
 
   03/17/19: https://github.com/hydronics2/SamdAudio
     updated to work with Adafruit Qaud Flash memory boards.
     This will work with any SAMD21 chip using SPI flash with a little tinkering
      - itsyBitsy M0 Express, 
      - Feather M0 Express, 
-     - probalby M4 of abovev and trinkets 
+
+   23/07/2020:
+    updated to work with the current version of the Adafruit_SPIFlash library.
+    Not tested but could probably be modified to function with an SD card.
+    For use with an SD card refer to https://github.com/hydronics2/SamdAudio
+    
+     - Will not work with Adafruit Feather M4 Express and other boards with the SAMD51 processor 
 
     Read this great description in the Adafruit tutorial for getting the WAV files onto your Adafruit M0 Express board
     https://learn.adafruit.com/introducing-itsy-bitsy-m0?view=all#using-spi-flash
     Thanks to Tondy Dicola and Adafruit for making this so easy!
 
-  if the sketch compiles and Initializes Audio player, but no sound, look in SamdAudio.cpp and umcomment these! 
-   - #include <Adafruit_SPIFlash.h>
-   - #include <Adafruit_SPIFlash_FatFs.h>
-   - extern Adafruit_W25Q16BV_FatFs memory;
-      
 */
 
 #include <SPI.h>
-
+#include <SdFat.h>
 #include <Adafruit_SPIFlash.h>
-#include <Adafruit_SPIFlash_FatFs.h>
+#include <Audio_FeatherM0.h> // 
 
-#define FLASH_TYPE     SPIFLASHTYPE_W25Q16BV  // Flash chip type.
-                                              // If you change this be
-                                              // sure to change the fatfs
-                                              // object type below to match.
+// On-board external flash (QSPI or SPI) macros should already
+// defined in your board variant if supported
+// - EXTERNAL_FLASH_USE_QSPI
+// - EXTERNAL_FLASH_USE_CS/EXTERNAL_FLASH_USE_SPI
+#if defined(EXTERNAL_FLASH_USE_QSPI)
+  Adafruit_FlashTransport_QSPI flashTransport;
 
-#define FLASH_SS       SS1                    // Flash chip SS pin.
-#define FLASH_SPI_PORT SPI1                   // What SPI port is Flash on?
+#elif defined(EXTERNAL_FLASH_USE_SPI)
+  Adafruit_FlashTransport_SPI flashTransport(EXTERNAL_FLASH_USE_CS, EXTERNAL_FLASH_USE_SPI);
 
-Adafruit_SPIFlash flash(FLASH_SS, &FLASH_SPI_PORT);     // Use hardware SPI
+#else
+  #error No QSPI/SPI flash are defined on your board variant.h !
+#endif
 
-// Finally create an Adafruit_M0_Express_CircuitPython object which gives
-// an SD card-like interface to interacting with files stored in CircuitPython's
-// flash filesystem.
-//Adafruit_M0_Express_CircuitPython pythonfs(flash);
-Adafruit_W25Q16BV_FatFs memory(flash);
+Adafruit_SPIFlash flash(&flashTransport);
 
-#include <SamdAudio.h> // 
+// file system object from SdFat
+FatFileSystem fatfs;
+
 SamdAudio AudioPlayer; 
 
 #define NUM_AUDIO_CHANNELS 4 //could be 1,2 or 4 for sound
@@ -55,10 +58,10 @@ SamdAudio AudioPlayer;
 const unsigned int sampleRate = 32000; //hz
 
 //your wav file
-const char *filename0 = "poem8bit_32khz.wav";
+const char *filename0 = "sfx1_8bit_22khz.wav";
 const char *filename1 = "sfx1_8bit_32khz.wav";
-const char *filename2 = "sfx2_8bit_32khz.wav";
-const char *filename3 = "sfx3_8bit_32khz.wav";
+const char *filename2 = "sfx2_8bit_22khz.wav";
+const char *filename3 = "sfx2_8bit_32khz.wav";
 const char *filename4 = "sfx4_8bit_32khz.wav";
 
 void setup()
@@ -67,21 +70,22 @@ void setup()
   Serial.begin(115200);
   while (!Serial); // open the serial to start!
 
-  // Initialize flash library and check its chip ID.
-  if (!flash.begin(FLASH_TYPE)) 
-  {
+ // Initialize flash library and check its chip ID.
+  if (!flash.begin()) {
     Serial.println("Error, failed to initialize flash chip!");
     while(1);
   }
-  Serial.print("Flash chip JEDEC ID: 0x"); Serial.println(flash.GetJEDECID(), HEX);
+  Serial.print("Flash chip JEDEC ID: 0x"); Serial.println(flash.getJEDECID(), HEX);
+
   // First call begin to mount the filesystem.  Check that it returns true
   // to make sure the filesystem was mounted.
-  if (!memory.begin()) 
-  {
-    Serial.println("Error, failed to mount filesystem!");
+  if (!fatfs.begin(&flash)) {
+    Serial.println("Failed to mount filesystem!");
+    Serial.println("Was CircuitPython loaded on the board first to create the filesystem?");
     while(1);
   }
-  Serial.println("Mounted filesystem!");  
+  Serial.println("Mounted filesystem!");
+
   
   Serial.print("Initializing Audio Player...");
   if (AudioPlayer.begin(sampleRate, NUM_AUDIO_CHANNELS, AUDIO_BUFFER_SIZE) == -1) 
@@ -126,4 +130,3 @@ void loop()
     }    
   } 
 }
-
