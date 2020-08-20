@@ -10,7 +10,7 @@ For use with SD cards refer to https://github.com/hydronics2/SamdAudio/
 Adafruit has a nice tutorial on how to connect the pin to a 1/8" audio jack. The hookup [instructions are here](https://learn.adafruit.com/circuitpython-essentials/circuitpython-audio-out) (ignore the circiut python example as this library is for an Arduino sketch).
 ![Adafruit image](https://cdn-learn.adafruit.com/assets/assets/000/057/479/original/circuitpython_ItsyBitsyM0AudioJackButtonPot_bb.jpg?1531328765) 
 
-The 8bit sound quality is medium quality. I was able to get up to 44.1khz using SPI flash on the Adafruit M0 boards. The quality needed to  be reduced to ~22khz when playing from the SD card.
+The 8bit sound quality is medium quality. You can get up to 44.1khz using SPI flash on the Adafruit M0 boards. 
 
 I use it with an Adafruit Mono 2.5W Class D Audio Amplifier - PAM8302 https://www.adafruit.com/product/2130
 Note that you may have to turn the volume down, using the onboard trim potentiometer for adjusting input volume, or it may overdrive the speaker.
