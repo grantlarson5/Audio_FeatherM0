@@ -13,7 +13,7 @@ Adafruit has a nice tutorial on how to connect the pin to a 1/8" audio jack. The
 The 8bit sound quality is medium quality. You can get up to 44.1khz using SPI flash on the Adafruit M0 boards. 
 
 I use it with an Adafruit Mono 2.5W Class D Audio Amplifier - PAM8302 https://www.adafruit.com/product/2130
-Note that you may have to turn the volume down, using the onboard trim potentiometer for adjusting input volume, or it may overdrive the speaker.
+Note that you may have to turn the volume down, using the onboard trim potentiometer for adjusting input volume, or it may overdrive the speaker. Pin 12 on the Feather M0 Express is used to turn the amp on and off.
 ![image](https://raw.githubusercontent.com/Gambalunga/Audio_FeatherM0/master/Audio%20Feather%20M0%20Express.jpg)
 
 The following Adafruit Express boards have onboard FLASH where you can store up to 2MB of sound ~30-120seconds depending on the sample rate.
