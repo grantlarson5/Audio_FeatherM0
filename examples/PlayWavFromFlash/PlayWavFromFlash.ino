@@ -8,15 +8,15 @@
   03/17/19: https://github.com/hydronics2/SamdAudio
     updated to work with Adafruit Qaud Flash memory boards.
     This will work with any SAMD21 chip using SPI flash with a little tinkering
-     - itsyBitsy M0 Express, 
-     - Feather M0 Express, 
+     - itsyBitsy M0 Express,
+     - Feather M0 Express,
 
    23/07/2020:
     updated to work with the current version of the Adafruit_SPIFlash library.
     Not tested but could probably be modified to function with an SD card.
     For use with an SD card refer to https://github.com/hydronics2/SamdAudio
-    
-     - Will not work with Adafruit Feather M4 Express and other boards with the SAMD51 processor 
+
+     - Will not work with Adafruit Feather M4 Express and other boards with the SAMD51 processor
 
     Read this great description in the Adafruit tutorial for getting the WAV files onto your Adafruit M0 Express board
     https://learn.adafruit.com/introducing-itsy-bitsy-m0?view=all#using-spi-flash
@@ -27,7 +27,9 @@
 #include <SPI.h>
 #include <SdFat.h>
 #include <Adafruit_SPIFlash.h>
-#include <Audio_FeatherM0.h> // 
+#include <Audio_FeatherM0.h>
+
+/************************ SPIFlash Instantiations *************************/
 
 // On-board external flash (QSPI or SPI) macros should already
 // defined in your board variant if supported
@@ -40,29 +42,35 @@
   Adafruit_FlashTransport_SPI flashTransport(EXTERNAL_FLASH_USE_CS, EXTERNAL_FLASH_USE_SPI);
 
 #else
-  #error No QSPI/SPI flash are defined on your board variant.h !
+  #warning No QSPI/SPI flash are defined on your board variant.h !
+	#warning Attempting to use off-board flash !
+
+	#define OFF_BOARD_FLASH_USE_CS 0 // Enter chose CS pin here
+	#define OFF_BOARD_FLASH_USE_SPI SPI
+
+	Adafruit_FlashTransport_SPI flashTransport(OFF_BOARD_FLASH_USE_CS,
+		OFF_BOARD_FLASH_USE_SPI);
+
 #endif
 
 Adafruit_SPIFlash flash(&flashTransport);
 
-// file system object from SdFat
-FatFileSystem fatfs;
+/************************* FatFs Instantiations ***************************/
 
-SamdAudio AudioPlayer; 
+FatFileSystem fatfs; // File system object from SD fat
 
-#define NUM_AUDIO_CHANNELS 4 //could be 1,2 or 4 for sound
+/****************************** Audio Player ******************************/
+SamdAudio AudioPlayer;
+
+#define NUM_AUDIO_CHANNELS 1 //could be 1,2 or 4 for sound
 
 #define AUDIO_BUFFER_SIZE 1024 //512 works fine for 22.05kh, use 1024 for 32khz and 44.1khz
 
 //indicate sample rate here (use audacity to convert your wav)
-const unsigned int sampleRate = 32000; //hz
+const unsigned int sampleRate = 882000; //hz
 
 //your wav file
-const char *filename0 = "sfx1_8bit_22khz.wav";
-const char *filename1 = "sfx1_8bit_32khz.wav";
-const char *filename2 = "sfx2_8bit_22khz.wav";
-const char *filename3 = "sfx2_8bit_32khz.wav";
-const char *filename4 = "sfx4_8bit_32khz.wav";
+const char *filename = "test.wav";
 
 void setup()
 {
@@ -86,47 +94,20 @@ void setup()
   }
   Serial.println("Mounted filesystem!");
 
-  
   Serial.print("Initializing Audio Player...");
-  if (AudioPlayer.begin(sampleRate, NUM_AUDIO_CHANNELS, AUDIO_BUFFER_SIZE) == -1) 
+  if (AudioPlayer.begin(sampleRate, NUM_AUDIO_CHANNELS, AUDIO_BUFFER_SIZE) == -1)
   {
     Serial.println(" failed!");
     return;
   }
   Serial.println(" done.");
 
-  AudioPlayer.play(filename0, 1);
-
-  Serial.println("Playing file.....");
 }
-
 
 void loop()
 {
-  if (Serial.available()) 
-  {
-    char c = Serial.read();
-    Serial.println(c); //for debug
+	Serial.print("Playing "); Serial.println(filename);
+	AudioPlayer.play(filename, 1);
 
-    if ( c == 'o') 
-    {
-      AudioPlayer.play(filename1, 0); //playing file on channel 0
-      Serial.println("playing audio file on channel 0");
-    }
-    if ( c == 'p') 
-    {
-      AudioPlayer.play(filename2, 1); //playing file  on channel 1
-      Serial.println("playing audio file on channel 1");
-    }
-      if ( c == 'k') 
-    {
-      AudioPlayer.play(filename3, 2); //playing file on channel 2
-      Serial.println("playing audio file on channel 2");
-    }
-      if ( c == 'l') 
-    {
-      AudioPlayer.play(filename4, 3); //playing file on channel 3
-      Serial.println("playing audio file on channel 3");
-    }    
-  } 
+	delay(1000);
 }
