@@ -62,12 +62,12 @@ FatFileSystem fatfs; // File system object from SD fat
 /****************************** Audio Player ******************************/
 SamdAudio AudioPlayer;
 
-#define NUM_AUDIO_CHANNELS 1 //could be 1,2 or 4 for sound
+#define NUM_AUDIO_CHANNELS 4 //could be 1,2 or 4 for sound
 
 #define AUDIO_BUFFER_SIZE 1024 //512 works fine for 22.05kh, use 1024 for 32khz and 44.1khz
 
 //indicate sample rate here (use audacity to convert your wav)
-const unsigned int sampleRate = 882000; //hz
+const unsigned int sampleRate = 88200; //hz
 
 //your wav file
 const char *filename = "test.wav";
@@ -107,7 +107,7 @@ void setup()
 void loop()
 {
 	Serial.print("Playing "); Serial.println(filename);
-	AudioPlayer.play(filename, 1);
+	AudioPlayer.play(filename, 0);
 
-	delay(1000);
+	delay(5000);
 }
